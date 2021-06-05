@@ -1,4 +1,4 @@
-import React, { Fragment, useState, useEffect } from 'react'
+import React, { Fragment, useMemo, useState, useEffect } from 'react'
 import { useLocation } from 'react-router'
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -28,63 +28,66 @@ const StyledTableCellHead = withStyles((theme) => createStyles({
 
 const Country = () => {
     const location = useLocation()
+    if (!location.state) {
+        window.location.replace("http://localhost:3000/")
+    }
     const { continentCountries, continentName } = location.state
     const [displayedRow, setDisplayedRow] = useState(5)
-    const [displayLoadMore, setDisplayLoadMore] = useState(true)
+    const displayLoadMore = useMemo(() => {
+        if (continentCountries.length > displayedRow) {
+            return true
+        } else {
+            return false
+        }
+    }, [continentCountries.length, displayedRow])
     useEffect(() => {
+        // reset default displayed row
         setDisplayedRow(5)
     }, [continentName])
     const loadMore = () => {
         setDisplayedRow(displayedRow + 5)
-        if (continentCountries.length < displayedRow) {
-            setDisplayLoadMore(false)
-        }
     }
-    if (!location.state) {
-        // block direct access
-        return <Redirect to='/' />
-    } else {
-        return (
-            <div>
-                <Fragment>
-                    <h1>{ continentName }</h1>
-                    <StyledTableContainer component={ Paper }>
-                        <Table aria-label="simple table">
-                            <TableHead>
-                                <TableRow>
-                                    <StyledTableCellHead align="center">Code</StyledTableCellHead>
-                                    <StyledTableCellHead align="center">Name</StyledTableCellHead>
-                                    <StyledTableCellHead align="center">Native</StyledTableCellHead>
-                                    <StyledTableCellHead align="center">Capital</StyledTableCellHead>
-                                    <StyledTableCellHead align="center">Currency</StyledTableCellHead>
-                                    <StyledTableCellHead align="center">Languages</StyledTableCellHead>
+    return (
+        <div>
+            <Fragment>
+                <h1>{ continentName }</h1>
+                <StyledTableContainer component={ Paper }>
+                    <Table aria-label="simple table">
+                        <TableHead>
+                            <TableRow>
+                                <StyledTableCellHead align="center">Code</StyledTableCellHead>
+                                <StyledTableCellHead align="center">Name</StyledTableCellHead>
+                                <StyledTableCellHead align="center">Native</StyledTableCellHead>
+                                <StyledTableCellHead align="center">Capital</StyledTableCellHead>
+                                <StyledTableCellHead align="center">Currency</StyledTableCellHead>
+                                <StyledTableCellHead align="center">Languages</StyledTableCellHead>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            { continentCountries.filter((_, index) => index < displayedRow).map(item => (
+                                <TableRow key={ item.code }>
+                                    <TableCell align="center">{ item.code }</TableCell>
+                                    <TableCell align="center">{ item.name }</TableCell>
+                                    <TableCell align="center">{ item.native }</TableCell>
+                                    <TableCell align="center">{ item.capital }</TableCell>
+                                    <TableCell align="center">{ item.currency }</TableCell>
+                                    <TableCell align="center">
+                                        {
+                                            item.languages.map((language, index) => (<p key={ index }>{ language.name }</p>))
+                                        }
+                                    </TableCell>
                                 </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                { continentCountries.filter((_, index) => index < displayedRow).map(item => (
-                                    <TableRow key={ item.code }>
-                                        <TableCell align="center">{ item.code }</TableCell>
-                                        <TableCell align="center">{ item.name }</TableCell>
-                                        <TableCell align="center">{ item.native }</TableCell>
-                                        <TableCell align="center">{ item.capital }</TableCell>
-                                        <TableCell align="center">{ item.currency }</TableCell>
-                                        <TableCell align="center">
-                                            {
-                                                item.languages.map((language, index) => (<p key={ index }>{ language.name }</p>))
-                                            }
-                                        </TableCell>
-                                    </TableRow>
-                                )) }
-                            </TableBody>
-                        </Table>
-                    </StyledTableContainer>
-                    <ButtonContainer>
-                        <Button disabled={ !displayLoadMore } style={ { visibility: !displayLoadMore && 'hidden' } } onClick={ loadMore } variant="contained" color="primary">Load More</Button>
-                    </ButtonContainer>
-                </Fragment >
-            </div>
-        )
-    }
+                            )) }
+                        </TableBody>
+                    </Table>
+                </StyledTableContainer>
+                <ButtonContainer>
+                    <Button disabled={ !displayLoadMore } style={ { visibility: !displayLoadMore && 'hidden' } } onClick={ loadMore } variant="contained" color="primary">Load More</Button>
+                </ButtonContainer>
+            </Fragment >
+        </div>
+    )
+
 
 }
 
